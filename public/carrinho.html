@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrinho de Compras - Sodiê Doces</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sodiePrimary: 'var(--color-primary, #6E1C44)',
+                        sodieSecondary: '#F8F8F8', // Mantém-se estática
+                        sodieAccent: 'var(--color-accent, #F3C555)', // Agora é dinâmica
+                        sodieText: '#333333',
+                        sodieLightText: '#FFFFFF',
+                        whatsappGreen: '#25D366',
+                    },
+                    fontFamily: {
+                        sans: ['Montserrat', 'sans-serif'],
+                        heading: ['Playfair Display', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <style id="dynamic-colors"></style>
+    <style>
+        .header-shadow { box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); }
+        .cart-item-quantity-input { width: 60px; text-align: center; }
+        input[type='number']::-webkit-inner-spin-button,
+        input[type='number']::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type='number'] { -moz-appearance: textfield; }
+
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: #fefefe; margin: auto; padding: 20px;
+            border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 90%; max-width: 500px; text-align: center;
+        }
+        .close-button {
+            color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;
+        }
+
+        
+    </style>
+</head>
+<body class="font-sans bg-sodieSecondary text-sodieText min-h-screen flex flex-col">
+
+    <header id="main-header" class="bg-white py-4 sticky top-0 z-50 shadow-md">
+        <div class="container mx-auto grid grid-cols-3 items-center px-4 md:px-8">
+            <div class="justify-self-start">
+                <a href="index.html" class="flex items-center">
+                    <img src="" alt="" class="h-10 md:h-12 site-logo">
+                </a>
+            </div>
+            <nav class="hidden md:flex items-center justify-center space-x-6 lg:space-x-8 text-sodieText font-medium text-lg">
+                <a href="index.html" class="hover:text-sodiePrimary transition duration-300">HOME</a>
+                <a href="#" class="hover:text-sodiePrimary transition duration-300">SOBRE NÓS</a>
+                <a href="#" class="hover:text-sodiePrimary transition duration-300">FALE CONOSCO</a>
+            </nav>
+            <div class="flex items-center space-x-4 justify-self-end">
+                <a href="carrinho.html" class="hidden md:flex items-center text-sodieText font-medium text-lg hover:text-sodiePrimary transition duration-300">MEU CARRINHO</a>
+                <button id="admin-login-btn" class="text-sodiePrimary hover:text-sodieAccent transition duration-300">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                </button>
+                <a href="crud.html" id="admin-gear-btn" class="hidden text-sodiePrimary hover:text-sodieAccent transition duration-300" title="Configurações">
+                    <svg class="w-7 h-7" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M20 6H10m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4m16 6h-2m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4m16 6H10m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4"/>
+                    </svg>
+                </a>
+                <button id="logout-btn" class="hidden text-sodiePrimary hover:text-red-500 transition duration-300" title="Sair">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                </button>
+                <button id="mobile-menu-button" class="md:hidden text-sodiePrimary hover:text-sodieAccent transition duration-300">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+            </div>
+        </div>
+       <div id="mobile-menu" class="hidden md:hidden bg-white py-4 shadow-lg absolute w-full top-[72px]">
+            <ul class="flex flex-col items-center space-y-4 text-sodieText font-medium">
+                <li><a href="index.html" class="block py-2 hover:text-sodiePrimary transition duration-300">HOME</a></li>
+                <li><a href="#" class="block py-2 hover:text-sodiePrimary transition duration-300">SOBRE NÓS</a></li>
+                <li><a href="#" class="block py-2 hover:text-sodiePrimary transition duration-300">FALE CONOSCO</a></li>
+                <li><a href="carrinho.html" class="block py-2 hover:text-sodiePrimary transition duration-300">MEU CARRINHO</a></li>
+                <li id="mobile-admin-gear-li" class="hidden"><a href="crud.html" class="block py-2 hover:text-sodiePrimary transition duration-300">GERENCIAR PRODUTOS</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto py-12 px-4 md:px-8">
+        <h1 class="text-4xl font-bold font-heading text-sodiePrimary text-center mb-12 flex items-center justify-center gap-1">
+            <span>Meu Carrinho</span>
+<svg class="w-[48px] h-[48px] text-sodiePrimary" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 4h1.5L9 16m0 0h8m-8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-8.5-3h9.25L19 7H7.312"/>
+</svg>
+
+</h1>
+        
+        <div id="cart-content" class="grid grid-cols-1 lg:grid-cols-3 lg:gap-8">
+            <div class="lg:col-span-2 space-y-4" id="cart-items-container">
+                <!-- Itens do carrinho serão injetados aqui -->
+            </div>
+            <div id="cart-summary" class="lg:col-span-1 hidden">
+                <div class="bg-white p-6 rounded-lg shadow-lg sticky top-28">
+                    <h2 class="text-2xl font-semibold font-heading text-sodieText mb-4 border-b pb-4">Resumo do Pedido</h2>
+                    <div id="summary-items-list" class="space-y-2 text-gray-600 mb-4"></div>
+                    <div class="border-t pt-4">
+                        <div class="flex justify-between font-bold text-lg">
+                            <span>Total</span>
+                            <span id="cart-total" class="text-sodiePrimary">R$ 0,00</span>
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <button id="checkout-whatsapp-btn" class="w-full bg-whatsappGreen text-white px-8 py-3 rounded-full font-semibold flex items-center justify-center space-x-2">
+<svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+  <path fill="currentColor" fill-rule="evenodd" d="M12 4a8 8 0 0 0-6.895 12.06l.569.718-.697 2.359 2.32-.648.379.243A8 8 0 1 0 12 4ZM2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10a9.96 9.96 0 0 1-5.016-1.347l-4.948 1.382 1.426-4.829-.006-.007-.033-.055A9.958 9.958 0 0 1 2 12Z" clip-rule="evenodd"/>
+  <path fill="currentColor" d="M16.735 13.492c-.038-.018-1.497-.736-1.756-.83a1.008 1.008 0 0 0-.34-.075c-.196 0-.362.098-.49.291-.146.217-.587.732-.723.886-.018.02-.042.045-.057.045-.013 0-.239-.093-.307-.123-1.564-.68-2.751-2.313-2.914-2.589-.023-.04-.024-.057-.024-.057.005-.021.058-.074.085-.101.08-.079.166-.182.249-.283l.117-.14c.121-.14.175-.25.237-.375l.033-.066a.68.68 0 0 0-.02-.64c-.034-.069-.65-1.555-.715-1.711-.158-.377-.366-.552-.655-.552-.027 0 0 0-.112.005-.137.005-.883.104-1.213.311-.35.22-.94.924-.94 2.16 0 1.112.705 2.162 1.008 2.561l.041.06c1.161 1.695 2.608 2.951 4.074 3.537 1.412.564 2.081.63 2.461.63.16 0 .288-.013.4-.024l.072-.007c.488-.043 1.56-.599 1.804-1.276.192-.534.243-1.117.115-1.329-.088-.144-.239-.216-.43-.308Z"/>
+</svg>
+
+                            <span>Finalizar Pedido</span>
+                        </button>
+                        <a href="index.html" class="mt-4 inline-block text-sodiePrimary font-semibold hover:underline text-center w-full">Continuar comprando</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="cart-empty-message" class="text-center text-gray-500 pt-4 hidden">
+            <div class="inline-block bg-gray-200 p-6 rounded-full">
+                <svg class="w-24 h-24 text-sodiePrimary opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+            </div>
+            <h2 class="text-3xl font-heading text-sodieText">O seu carrinho está à espera de delícias!</h2>
+            <p class="text-lg mt-2 mb-4">Parece que você ainda não adicionou nenhum produto.</p>
+                        <p class="text-lg mt-2 mb-2">Que tal explorar as nossas categorias?</p>
+            <a href="index.html#produtos" class="mt-6 inline-block bg-sodiePrimary text-white px-8 py-3 rounded-full hover:bg-sodieAccent hover:text-sodieText transition duration-300 font-semibold text-lg">
+                Explorar Produtos
+            </a>
+        </div>
+
+        <!-- MODAL DE LOGIN -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content max-w-md">
+            <span id="close-login-modal" class="close-button">&times;</span>
+            <div id="login-content-wrapper">
+<img width="100" height="100" src="https://img.icons8.com/hands/100/card-in-use.png" alt="card-in-use" class="mx-auto"/>
+                <h2 class="text-3xl font-bold font-heading text-sodiePrimary text-center mb-6">Acesso Administrativo</h2>
+                <form id="login-form" class="space-y-6">
+                    <div>
+                        <label for="email" class="block text-sodieText text-lg font-medium mb-2 text-left">Email:</label>
+                        <input type="email" id="email" required class="w-full p-3 border border-gray-300 rounded-md focus:ring-sodiePrimary focus:border-sodiePrimary">
+                    </div>
+                    <div>
+                        <label for="password" class="block text-sodieText text-lg font-medium mb-2 text-left">Senha:</label>
+                        <input type="password" id="password" required class="w-full p-3 border border-gray-300 rounded-md focus:ring-sodiePrimary focus:border-sodiePrimary">
+                    </div>
+                    <div id="login-error" class="text-red-500 text-center font-medium hidden"></div>
+                    <div class="flex justify-center">
+                        <button type="submit" class="bg-sodiePrimary text-sodieLightText w-full px-6 py-3 rounded-full hover:bg-sodieAccent hover:text-sodieText transition duration-300 font-semibold">
+                            Entrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div id="login-loader-container" class="hidden text-center py-12">
+                <div class="loader"></div>
+                <p class="text-sodieText mt-4 font-semibold">Verificando...</p>
+            </div>
+        </div>
+    </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, signInAnonymously, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { firebaseConfig, ADMIN_UID } from './config.js';
+
+        const appId = firebaseConfig.appId;
+        let db, auth;
+        let cart = [];
+        const DEFAULT_FAVICON_URL = "https://cdn-icons-png.flaticon.com/128/684/684809.png"; // <-- ADICIONE AQUI
+
+
+        const cartItemsContainer = document.getElementById('cart-items-container');
+        const cartTotal = document.getElementById('cart-total');
+        const summaryItemsList = document.getElementById('summary-items-list');
+        const checkoutWhatsappBtn = document.getElementById('checkout-whatsapp-btn');
+        const cartEmptyMessage = document.getElementById('cart-empty-message');
+        const cartSummary = document.getElementById('cart-summary');
+        const cartContent = document.getElementById('cart-content');
+        
+        const adminLoginBtn = document.getElementById('admin-login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const adminGearBtn = document.getElementById('admin-gear-btn');
+        const mobileAdminGearLi = document.getElementById('mobile-admin-gear-li');
+        
+        // Adicione esta variável global
+        let siteWhatsappNumber = []; // Número padrão
+
+        function loadSiteSettings() {
+            if (!db) return;
+            const configRef = doc(db, `artifacts/${appId}/public/data/config/site_settings`);
+            const dynamicColorsStyle = document.getElementById('dynamic-colors'); 
+            const DEFAULT_LOGO_URL = "https://i.ibb.co/v45fCXT6/logo.png";
+            onSnapshot(configRef, (snapshot) => {
+                const data = snapshot.data() || {};
+            
+                const faviconLink = document.getElementById('favicon-link');
+            if (faviconLink) {
+                faviconLink.href = data.faviconUrl || DEFAULT_FAVICON_URL;
+            }
+
+                // 1. Aplica as Cores Dinâmicas
+                const primaryColor = data.primaryColor || '#6E1C44';
+                const accentColor = data.accentColor || '#F3C555'; // Lê accentColor
+                if (dynamicColorsStyle) {
+                    dynamicColorsStyle.innerHTML = `
+                        :root {
+                            --color-primary: ${primaryColor};
+                            --color-accent: ${accentColor};
+                        }
+                    `;
+                }
+
+                const logoUrl = data.activeLogoUrl || DEFAULT_LOGO_URL;
+                siteWhatsappNumber = data.whatsappNumber || siteWhatsappNumber; // Atualiza o número
+
+                document.querySelectorAll('.site-logo').forEach(img => {
+                    if (img.src !== logoUrl) img.src = logoUrl;
+                });
+            });
+        }
+
+        async function initializeAuth() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                const loginModal = document.getElementById('login-modal');
+                const loginForm = document.getElementById('login-form');
+                const loginError = document.getElementById('login-error');
+                const closeLoginModal = document.getElementById('close-login-modal');
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user && user.uid === ADMIN_UID) {
+                        mobileAdminGearLi.classList.remove('hidden');
+                        adminLoginBtn.classList.add('hidden');
+                        logoutBtn.classList.remove('hidden');
+                        adminGearBtn.classList.remove('hidden');
+                    } else {
+                        mobileAdminGearLi.classList.add('hidden');
+                        adminLoginBtn.classList.remove('hidden');
+                        logoutBtn.classList.add('hidden');
+                        adminGearBtn.classList.add('hidden');
+                    }
+
+                    if (user) {
+                        loadSiteSettings();
+                    } else {
+                        signInAnonymously(auth).catch(authError => console.error("Anonymous sign-in error:", authError));
+                    }
+                });
+
+                    // --- Login/Logout Event Listeners ---
+        adminLoginBtn.addEventListener('click', () => { loginModal.style.display = 'flex'; });
+        logoutBtn.addEventListener('click', () => { signOut(auth); });
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            signInWithEmailAndPassword(auth, email, password)
+                .then(userCredential => {
+                    if (userCredential.user.uid === ADMIN_UID) window.location.href = 'crud.html';
+                    else signOut(auth).then(() => showModal('Acesso Negado', 'Este usuário não é um administrador.'));
+                })
+                .catch(error => { loginError.textContent = "Email ou senha inválidos."; loginError.classList.remove('hidden'); });
+        });
+
+
+                logoutBtn.addEventListener('click', () => signOut(auth));
+                adminLoginBtn.addEventListener('click', () => {
+                    if(loginModal) loginModal.style.display = 'flex';
+                });
+                if(closeLoginModal) {
+                    closeLoginModal.addEventListener('click', () => {
+                        loginModal.style.display = 'none';
+                        loginError.classList.add('hidden');
+                        loginForm.reset();
+                    });
+                }
+                if(loginForm) {
+                    loginForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        const email = document.getElementById('email').value;
+                        const password = document.getElementById('password').value;
+                        loginError.classList.add('hidden');
+
+                        signInWithEmailAndPassword(auth, email, password)
+                            .then(userCredential => {
+                                loginModal.style.display = 'none';
+                                if (userCredential.user.uid !== ADMIN_UID) {
+                                    signOut(auth).then(() => {
+                                        alert('Acesso Negado: Este usuário não é um administrador.');
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                loginError.textContent = "Email ou senha inválidos.";
+                                loginError.classList.remove('hidden');
+                            });
+                    });
+                }
+
+            } catch (error) {
+                console.error("Erro ao inicializar autenticação do Firebase:", error);
+            }
+        }
+
+        function loadCart() {
+            const cartData = localStorage.getItem('sodieCart');
+            cart = cartData ? JSON.parse(cartData) : [];
+            updateCart();
+        }
+
+        function saveCart() {
+            localStorage.setItem('sodieCart', JSON.stringify(cart));
+        }
+
+        function updateCart() {
+            renderCartItems();
+            updateCartTotal();
+        }
+
+        function renderCartItems() {
+            if (cart.length === 0) {
+                cartContent.classList.add('hidden');
+                cartEmptyMessage.classList.remove('hidden');
+            } else {
+                cartContent.classList.remove('hidden');
+                cartEmptyMessage.classList.add('hidden');
+                cartSummary.classList.remove('hidden');
+                cartItemsContainer.innerHTML = cart.map(item => `
+                    <div class="flex items-center space-x-4 bg-white p-4 rounded-lg shadow-sm">
+                        <img src="${item.image}" alt="${item.name}" class="w-24 h-24 object-cover rounded-md">
+                        <div class="flex-grow">
+                            <p class="font-bold text-lg">${item.name}</p>
+                            <p class="text-sm text-gray-600 font-bold">R$ ${item.price.toFixed(2).replace('.', ',')}</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button class="cart-quantity-change text-xl font-bold p-1 rounded-full bg-gray-200 hover:bg-gray-300 w-8 h-8 flex items-center justify-center" data-product-id="${item.id}" data-change="-1">-</button>
+                            <input type="number" value="${item.quantity}" min="1" class="cart-item-quantity-input border rounded-md p-1 font-bold" data-product-id="${item.id}">
+                            <button class="cart-quantity-change text-xl font-bold p-1 rounded-full bg-gray-200 hover:bg-gray-300 w-8 h-8 flex items-center justify-center" data-product-id="${item.id}" data-change="1">+</button>
+                        </div>
+                        <div class="text-lg font-bold w-24 text-right">
+                            R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')}
+                        </div>
+                        <button class="cart-remove-item text-red-500 hover:text-red-700 font-bold text-2xl" data-product-id="${item.id}" title="Remover">&times;</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function updateCartTotal() {
+            summaryItemsList.innerHTML = '';
+            let total = 0;
+            cart.forEach(item => {
+                total += item.price * item.quantity;
+                const summaryItem = document.createElement('div');
+                summaryItem.className = 'flex justify-between items-center text-sm';
+                summaryItem.innerHTML = `
+                    <span class="text-left"><span class="font-bold inline-block w-8 text-left">${item.quantity}x</span> ${item.name}</span>
+                    <span class="font-bold text-right">R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')}</span>
+                `;
+                summaryItemsList.appendChild(summaryItem);
+            });
+            cartTotal.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+        }
+        
+        cartItemsContainer.addEventListener('click', (e) => {
+            const target = e.target;
+            if (target.classList.contains('cart-quantity-change')) {
+                const { productId, change } = target.dataset;
+                changeQuantity(productId, parseInt(change));
+            }
+            if (target.classList.contains('cart-remove-item')) {
+                const { productId } = target.dataset;
+                removeFromCart(productId);
+            }
+        });
+        
+        cartItemsContainer.addEventListener('change', (e) => {
+            if(e.target.classList.contains('cart-item-quantity-input')) {
+                const { productId } = e.target.dataset;
+                const newQuantity = parseInt(e.target.value, 10);
+                setQuantity(productId, newQuantity);
+            }
+        });
+
+        function changeQuantity(productId, change) {
+            const item = cart.find(item => item.id === productId);
+            if (item) {
+                item.quantity += change;
+                if (item.quantity < 1) {
+                    item.quantity = 1;
+                }
+                saveCart();
+                updateCart();
+            }
+        }
+
+        function setQuantity(productId, newQuantity) {
+             const item = cart.find(item => item.id === productId);
+             if(item && newQuantity > 0) {
+                 item.quantity = newQuantity;
+                 saveCart();
+                 updateCart();
+             } else if (item) {
+                 updateCart();
+             }
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            saveCart();
+            updateCart();
+        }
+
+        checkoutWhatsappBtn.addEventListener('click', () => {
+            if (cart.length === 0) return;
+            let message = "Olá! Gostaria de fazer um pedido:\n\n";
+            cart.forEach(item => {
+                message += `*${item.quantity}x* - ${item.name} (R$ ${item.price.toFixed(2).replace('.', ',')} cada)\n`;
+            });
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            message += `\n*Total:* R$ ${total.toFixed(2).replace('.', ',')}`;
+
+           const encodedMessage = encodeURIComponent(message);
+            window.open(`https://wa.me/${siteWhatsappNumber}?text=${encodedMessage}`, '_blank');
+
+
+             // --- INÍCIO DA ALTERAÇÃO ---
+            // Limpa o carrinho após enviar o pedido
+            cart = [];
+            saveCart();
+            updateCart(); // Atualiza a interface para mostrar o carrinho vazio
+            // --- FIM DA ALTERAÇÃO ---
+        });
+
+        window.onload = () => {
+            initializeAuth();
+            loadCart();
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+            document.addEventListener('click', (event) => {
+                if (!mobileMenu.contains(event.target) && !mobileMenuButton.contains(event.target)) {
+                    mobileMenu.classList.add('hidden');
+                }
+            });
+        };
+    </script>
+</body>
+</html>
